@@ -12,26 +12,6 @@ run-postgres:
 		-d \
 		postgres:15.1-alpine
 
-.PHONY: run-api-node-dev
-run-api-node-dev:
-	@echo Starting node api
-	cd api-node && \
-		DATABASE_URL=${DATABASE_URL} \
-		npm run dev
-
-.PHONY: run-api-golang-dev
-run-api-golang-dev:
-	@echo Starting golang api
-	cd api-golang && \
-		DATABASE_URL=${DATABASE_URL} \
-		go run main.go
-
-.PHONY: run-client-react-dev
-run-client-react-dev:
-	@echo Starting react client
-	cd client-react && \
-		npm run dev
-
 .PHONY: run-api-node
 run-api-node:
 	@echo Starting node api
@@ -42,3 +22,40 @@ run-api-node:
 		--name api-node \
 		--network my-network \
 		api-node:1
+
+.PHONY: run-api-golang
+run-api-golang:
+	@echo Starting golang api
+	docker run \
+		-e DATABASE_URL=${DATABASE_URL} \
+		-d \
+		-p 8080:8080 \
+		--name api-golang \
+		--network my-network \
+		api-golang:1
+
+.PHONY: run-client-react-dev
+run-client-react-dev:
+	@echo Starting react client
+	cd client-react && \
+		npm run dev
+
+.PHONY: start-postgres
+start-postgres:
+	@echo Starting postgres container
+	-docker start db
+
+.PHONY: start-api-node
+start-api-node:
+	@echo Starting node api
+	docker start api-node
+
+.PHONY: start-api-golang
+start-api-golang:
+	@echo Starting golang api
+	docker start api-golang
+
+.PHONY: delete-all
+delete-all:
+	@echo Deleting all containers
+	-docker rm -f db api-node api-golang
