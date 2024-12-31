@@ -37,25 +37,24 @@ run-api-golang:
 .PHONY: run-client-react-dev
 run-client-react-dev:
 	@echo Starting react client
-	cd client-react && \
-		npm run dev
+	docker run \
+		-d \
+		-p 80:8080 \
+		--name client-react \
+		--network my-network \
+		client-react:1
 
-.PHONY: start-postgres
-start-postgres:
+run-all: run-postgres run-api-node run-api-golang run-client-react-dev
+
+.PHONY: start-all
+start-all:
 	@echo Starting postgres container
 	-docker start db
-
-.PHONY: start-api-node
-start-api-node:
-	@echo Starting node api
-	docker start api-node
-
-.PHONY: start-api-golang
-start-api-golang:
-	@echo Starting golang api
-	docker start api-golang
+	-docker start api-node
+	-docker start api-golang
+	-docker start client-react
 
 .PHONY: delete-all
 delete-all:
 	@echo Deleting all containers
-	-docker rm -f db api-node api-golang
+	-docker rm -f db api-node api-golang client-react
