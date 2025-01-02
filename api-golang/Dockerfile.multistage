@@ -1,13 +1,28 @@
-FROM golang:1.19-bullseye AS Build
+FROM golang:1.19-bullseye AS build
+
+# Add non root user
+RUN useradd -u 1001 nonroot
 
 # Set working directory
 WORKDIR /app
 
 # Copy go mod and sum files
-COPY . .
+COPY go.mod go.sum ./
 
 # Download all dependencies
-RUN go mod download
+RUN --mount=type=cache,target=/go/pkg/mod \
+    --mount=type=cache,target=/root/.cache/go-build \
+    go mod download
+
+# Copy the source from the current directory to the working Directory inside the container
+COPY . .
+
+# Compile healthcheck
+RUN go build \
+    -ldflags="-linkmode external -extldflags -static" \
+    -tags netgo \
+    -o healthcheck \
+    ./healthcheck/healthcheck.go
 
 # Compile application
 RUN go build \
@@ -15,6 +30,8 @@ RUN go build \
     -tags netgo \
     -o api-golang
 
+
+# Use seperate stage for deployable image
 FROM alpine:3.14
 
 # Set environment variables
@@ -22,11 +39,17 @@ ENV GIN_MODE=release
 
 WORKDIR /
 
+# Copy healthcheck
+COPY --from=build /app/healthcheck/healthcheck healthcheck
+
 # Copy the binary from the build stage
-COPY --from=Build /app/api-golang api-golang
+COPY --from=build /app/api-golang api-golang
+
+# Use nonroot user
+USER nonroot
 
 # Expose port
 EXPOSE 8080
 
 # Command to run the application
-CMD ["./api-golang"]
+CMD ["/api-golang"]
