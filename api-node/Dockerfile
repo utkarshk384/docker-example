@@ -14,15 +14,14 @@ RUN --mount=type=cache,target=usr/src/app/.npm \
 # Set environment variables
 ENV NODE_ENV production
 
+# Expose port
+EXPOSE 3000
+
 # Use non-root user
 USER node
 
 # Copy files
-COPY --chown=node:node ./healthcheck/ .
 COPY --chown=node:node ./src/ .
-
-# Expose port
-EXPOSE 3000
 
 # Start the app
 CMD ["node", "index.js"]

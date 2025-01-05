@@ -17,13 +17,6 @@ RUN --mount=type=cache,target=/go/pkg/mod \
 # Copy the source from the current directory to the working Directory inside the container
 COPY . .
 
-# Compile healthcheck
-RUN go build \
-    -ldflags="-linkmode external -extldflags -static" \
-    -tags netgo \
-    -o healthcheck \
-    ./healthcheck/healthcheck.go
-
 # Compile application
 RUN go build \
     -ldflags="-linkmode external -extldflags -static" \
@@ -39,8 +32,8 @@ ENV GIN_MODE=release
 
 WORKDIR /
 
-# Copy healthcheck
-COPY --from=build /app/healthcheck/healthcheck healthcheck
+# Copy the passwd file
+COPY --from=build /etc/passwd /etc/passwd
 
 # Copy the binary from the build stage
 COPY --from=build /app/api-golang api-golang
