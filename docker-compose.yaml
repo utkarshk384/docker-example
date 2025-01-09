@@ -4,7 +4,7 @@ services:
     ports:
       - "5432:5432"
     environment:
-      POSTGRES_PASSWORD: foobarbaz
+      - POSTGRES_PASSWORD=${DB_PASSWORD}
     networks:
       - my-network
     volumes:
@@ -22,7 +22,7 @@ services:
     depends_on:
       - db
     environment:
-      - DATABASE_URL=postgres://postgres:foobarbaz@db:5432/postgres
+      - DATABASE_URL=${DB_URL}
 
   api-node:
     build:
@@ -36,7 +36,7 @@ services:
     depends_on:
       - db
     environment:
-      - DATABASE_URL=postgres://postgres:foobarbaz@db:5432/postgres
+      - DATABASE_URL=${DB_URL}
 
   client-react:
     build:
